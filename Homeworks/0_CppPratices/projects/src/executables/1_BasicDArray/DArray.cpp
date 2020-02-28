@@ -34,7 +34,7 @@ DArray::~DArray() {
 
 // display the elements of the array
 void DArray::Print() const {
-	cout << "size= " << m_nSize << ":" << endl;
+	cout << "size= " << m_nSize << ":";
 	for (int i = 0; i < m_nSize; i++)
 		cout << " " << GetAt(i);
 
@@ -65,16 +65,16 @@ void DArray::SetSize(int nSize) {
 	if (m_nSize == nSize)
 		return;
 
-	double* temp = new double[nSize];
+	double* pData = new double[nSize];
 
 	int copyNum = nSize < m_nSize ? nSize : m_nSize;
 	for (int i = 0; i < copyNum; i++)
-		temp[i] = m_pData[i];
+		pData[i] = m_pData[i];
 	for (int i = copyNum; i < nSize; i++)
-		temp[i] = 0.;
+		pData[i] = 0.;
 
 	delete[] m_pData;
-	m_pData = temp;
+	m_pData = pData;
 	m_nSize = nSize;
 }
 

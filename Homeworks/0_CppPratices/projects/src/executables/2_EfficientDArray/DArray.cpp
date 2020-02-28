@@ -1,5 +1,7 @@
 // implementation of class DArray
 #include "DArray.h"
+#include <assert.h>
+
 
 // default constructor
 DArray::DArray() {
@@ -56,6 +58,13 @@ const double& DArray::GetAt(int nIndex) const {
 // set the value of an element 
 void DArray::SetAt(int nIndex, double dValue) {
 	//TODO
+}
+
+// overload operator '[]'
+double& DArray::operator[](int nIndex) {
+	// TODO
+	static double ERROR; // you should delete this line
+	return ERROR;
 }
 
 // overload operator '[]'

@@ -6,12 +6,14 @@
 #include "shape.h"
 #include "Line.h"
 #include "Rect.h"
+#include "ellipse.h"
+#include "Poly.h"
 
 #include <qevent.h>
 #include <qpainter.h>
 #include <QWidget>
 
-#include <vector>
+//#include <vector>
 
 class ViewWidget : public QWidget
 {
@@ -35,6 +37,7 @@ private:
 
 public:
 	void mousePressEvent(QMouseEvent* event);
+	//void mouseDoubleClickEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
 	void mouseReleaseEvent(QMouseEvent* event);
 
@@ -44,6 +47,8 @@ signals:
 public slots:
 	void setLine();
 	void setRect();
+	void setElli();
+	void setPoly();
 
 };
 
