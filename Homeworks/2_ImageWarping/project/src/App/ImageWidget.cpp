@@ -11,15 +11,22 @@ ImageWidget::ImageWidget(void)
 {
 	ptr_image_ = new QImage();
 	ptr_image_backup_ = new QImage();
+	warp_type_ = Warp::kDefault;
+	is_draw = 0;
+	flag = 0;
+	warp = NULL;
 }
 
 
 ImageWidget::~ImageWidget(void)
 {
+	delete (ptr_image_);
+	delete(ptr_image_backup_);
 }
 
 void ImageWidget::paintEvent(QPaintEvent *paintevent)
 {
+	//cout << "paint!" << endl;
 	QPainter painter;
 	painter.begin(this);
 
@@ -29,8 +36,35 @@ void ImageWidget::paintEvent(QPaintEvent *paintevent)
 	painter.drawRect(back_rect);
 
 	// Draw image
-	QRect rect = QRect( (width()-ptr_image_->width())/2, (height()-ptr_image_->height())/2, ptr_image_->width(), ptr_image_->height());
+	QRect rect = QRect(0, 0, ptr_image_->width(), ptr_image_->height());
+	//QRect rect = QRect( (width()-ptr_image_->width())/2, (height()-ptr_image_->height())/2, ptr_image_->width(), ptr_image_->height());
 	painter.drawImage(rect, *ptr_image_); 
+
+	//Draw Line&Point
+	painter.drawPoint(QPoint(0, 0));
+	if (is_draw == TRUE&& warp->map_pair_length())
+	{
+		//painter.setPen(QPen(QColor(0, 160, 230), 16));
+		//painter.drawPoint(QPoint(0, 0));
+		painter.setPen(QPen(QColor(0, 160, 230), 8));
+		for (int i = 0; i < warp->map_pair_length(); i++)
+		{
+			if (warp->get_map_pair(i).start == warp->get_map_pair(i).end)
+			{
+				painter.setPen(QPen(QColor(0, 160, 230), 8));
+				painter.drawPoint(warp->get_map_pair(i).start);
+			}
+			else
+			{
+				painter.setPen(QPen(QColor(0, 160, 230), 8));
+				painter.drawPoint(warp->get_map_pair(i).start);
+				painter.setPen(QPen(QColor(3, 20, 160), 5));
+				painter.drawLine(warp->get_map_pair(i).start, warp->get_map_pair(i).end);
+				painter.setPen(QPen(QColor(0, 160, 230), 8));
+				painter.drawPoint(warp->get_map_pair(i).end);
+			}
+		}
+	}
 
 	painter.end();
 }
@@ -50,7 +84,7 @@ void ImageWidget::Open()
 	//ptr_image_->invertPixels(QImage::InvertRgb);
 	//*(ptr_image_) = ptr_image_->mirrored(true, true);
 	//*(ptr_image_) = ptr_image_->rgbSwapped();
-	cout<<"image size: "<<ptr_image_->width()<<' '<<ptr_image_->height()<<endl;
+	//cout<<"image size: "<<ptr_image_->width()<<' '<<ptr_image_->height()<<endl;
 	update();
 }
 
@@ -155,3 +189,126 @@ void ImageWidget::Restore()
 	*(ptr_image_) = *(ptr_image_backup_);
 	update();
 }
+
+void ImageWidget::SetWarpToIDW()
+{
+	warp_type_ = Warp::kIDW;
+}
+
+void ImageWidget::SetWarpToRBF()
+{
+	warp_type_ = Warp::kRBF;
+}
+
+
+void ImageWidget::mousePressEvent(QMouseEvent* event)
+{
+	std::cout << "press" << std::endl;
+	QPainter painter(this);
+	if (Qt::LeftButton == event->button())
+	{
+		switch (warp_type_)
+		{
+		case Warp::kDefault:
+			break;
+
+		case Warp::kIDW:
+			is_draw = TRUE;
+			if (warp == NULL)
+			{
+				warp = new Warp_IDW();
+			}
+			pair.start = event->pos();
+			pair.end = event->pos();
+			//warp->add_map_point(pair);
+			//painter.drawPoint(event->pos());
+			break;
+
+		case Warp::kRBF:
+			is_draw = TRUE;
+			if (warp == NULL)
+			{
+				warp = new Warp_RBF();
+			}
+			pair.start = event->pos();
+			pair.end = event->pos();
+			warp->add_map_point(pair);
+			break;
+		}
+	}
+	/*else if (Qt::LeftButton == event->button())
+	{
+		//flag = TRUE;
+		switch (warp_type_)
+		{
+		case Warp::kDefault:
+			break;
+
+		case Warp::kIDW:
+			is_draw = TRUE;
+			if (warp == NULL)
+			{
+				warp = new Warp_IDW();
+			}
+			pair.start = event->pos();
+			pair.end = event->pos();
+			break;
+
+		case Warp::kRBF:
+			is_draw = TRUE;
+			if (warp == NULL)
+			{
+				warp = new Warp_RBF();
+			}
+			pair.start = event->pos();
+			pair.end = event->pos();
+			break;
+		}
+	}*/
+	update();
+}
+
+void ImageWidget::mouseMoveEvent(QMouseEvent* event)
+{
+	if (warp_type_ != Warp::kDefault)
+	{
+		is_draw = TRUE;
+		pair.end = event->pos();
+	}
+	update();
+}
+
+void ImageWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+	//std::cout << "release!" << std::endl;
+	if (warp_type_ != Warp::kDefault)
+	{
+		std::cout << "release!" << std::endl;
+		warp->add_map_point(pair);
+	}
+	update();
+}
+
+void ImageWidget::WarpNow()
+{
+	if (warp_type_ != Warp::kDefault)
+	{
+		is_draw = FALSE;
+		warp->warp_image(ptr_image_);
+		update();
+		delete(warp);
+		warp = NULL;
+	}
+}
+
+/*void ImageWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	if (warp_type_ != Warp::kDefault)
+	{
+		is_draw = FALSE;
+		warp->warp_image(ptr_image_);
+		update();
+		free(warp);
+		warp = NULL;
+	}
+}*/

@@ -44,7 +44,7 @@ void ViewWidget::setPoly()
 void ViewWidget::mousePressEvent(QMouseEvent* event)
 {
 	QPainter painter(this);
-	if (Qt::LeftButton == event->button())
+	if(Qt::LeftButton==event->button()) 
 	{
 		if (type_ == Shape::kPoly)
 		{

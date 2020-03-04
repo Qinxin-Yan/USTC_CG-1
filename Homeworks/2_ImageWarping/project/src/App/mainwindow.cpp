@@ -51,6 +51,7 @@ void MainWindow::CreateActions()
 	action_save_ = new QAction(QIcon(":/MainWindow/Resources/images/save.jpg"), tr("&Save"), this);
 	action_save_->setShortcuts(QKeySequence::Save);
 	action_save_->setStatusTip(tr("Save the document to disk"));
+	connect(action_save_, &QAction::triggered, imagewidget_, &ImageWidget::Save);
 	// connect ...
 
 	action_saveas_ = new QAction(tr("Save &As..."), this);
@@ -77,6 +78,18 @@ void MainWindow::CreateActions()
 	action_restore_ = new QAction(tr("Restore"), this);
 	action_restore_->setStatusTip(tr("Show origin image"));
 	connect(action_restore_, &QAction::triggered, imagewidget_, &ImageWidget::Restore);
+
+	action_warp_IDW_ = new QAction(tr("Warp-IDW"), this);
+	action_warp_IDW_ -> setStatusTip(tr("Warp with IDW"));
+	connect(action_warp_IDW_, &QAction::triggered, imagewidget_, &ImageWidget::SetWarpToIDW);
+
+
+	action_warp_RBF_ = new QAction(tr("Warp-RBF"), this);
+	action_warp_RBF_->setStatusTip(tr("Warp with RBF"));
+	connect(action_warp_RBF_, &QAction::triggered, imagewidget_, &ImageWidget::SetWarpToRBF);
+
+	act_warp_ = new QAction(tr("warp now"), this);
+	connect(act_warp_, &QAction::triggered, imagewidget_, &ImageWidget::WarpNow);
 }
 
 void MainWindow::CreateMenus()
@@ -94,6 +107,10 @@ void MainWindow::CreateMenus()
 	menu_edit_->addAction(action_mirror_);
 	menu_edit_->addAction(action_gray_);
 	menu_edit_->addAction(action_restore_);
+	menu_edit_->addAction(action_warp_IDW_);
+	menu_edit_->addAction(action_warp_RBF_);
+	menu_edit_->addAction(act_warp_);
+
 }
 
 void MainWindow::CreateToolBars()
@@ -109,6 +126,9 @@ void MainWindow::CreateToolBars()
 	toolbar_file_->addAction(action_mirror_);
 	toolbar_file_->addAction(action_gray_);
 	toolbar_file_->addAction(action_restore_);
+	toolbar_file_->addAction(action_warp_IDW_);
+	toolbar_file_->addAction(action_warp_RBF_);
+	toolbar_file_->addAction(act_warp_);
 }
 
 void MainWindow::CreateStatusBar()
