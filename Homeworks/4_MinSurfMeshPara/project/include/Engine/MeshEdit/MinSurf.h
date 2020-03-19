@@ -28,6 +28,8 @@ namespace Ubpa {
 	private:
 		// kernel part of the algorithm
 		void Minimize();
+		const int find_idx(std::vector<int>& vec, int idx);
+
 
 	private:
 		class V;

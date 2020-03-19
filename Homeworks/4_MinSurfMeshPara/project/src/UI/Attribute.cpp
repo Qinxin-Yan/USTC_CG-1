@@ -350,8 +350,8 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 
 	grid->AddButton("Paramaterize", [mesh, pOGLW = attr->pOGLW]() {
 		auto paramaterize = Paramaterize::New(mesh);
-		if (paramaterize->Run())
-			printf("Paramaterize done\n");
+		paramaterize->Run();
+		printf("Paramaterize done\n");
 		pOGLW->DirtyVAO(mesh);
 	});
 
