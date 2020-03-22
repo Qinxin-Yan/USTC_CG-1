@@ -69,7 +69,7 @@ bool Par_freebound::Run() {
 	Para();
 
 	// half-edge structure -> triangle mesh
-	size_t nV = heMesh->NumVertices();
+	/*size_t nV = heMesh->NumVertices();
 	size_t nF = heMesh->NumPolygons();
 	vector<pointf3> positions;
 	vector<unsigned> indice;
@@ -80,7 +80,7 @@ bool Par_freebound::Run() {
 	for (auto f : heMesh->Polygons()) { // f is triangle
 		for (auto v : f->BoundaryVertice()) // vertices of the triangle
 			indice.push_back(static_cast<unsigned>(heMesh->Index(v)));
-	}
+	}*/
 
 	//triMesh->Init(indice, positions);
 
@@ -89,13 +89,22 @@ bool Par_freebound::Run() {
 
 void Par_freebound::SetxList()
 {
+	//cout << "num of polys:" << heMesh->NumPolygons() << endl;
+	//cout << "set x list!" << endl;
 	for (auto t : heMesh->Polygons())
 	{
+		//cout << "t index:" << heMesh->Index(t) << endl;
 		vector<Vector2f> point_2D(3);
 		vector<float> t_angle;
-
+		//vector<pointf3> p_list;
 		vector<V*> point_3D = t->BoundaryVertice();
+		//cout << "point_3D size:" << point_3D.size() << endl;
 		if (point_3D.size() < 3) return;
+		/*for (int i = 0; i < point_3D.size(); i++)
+		{
+			p_list.push_back({ point_3D[i]->pos[0],point_3D[i]->pos[1],point_3D[i]->pos[2] });
+		}*/
+
 		pointf3 p0 = { point_3D[0]->pos[0],point_3D[0]->pos[1],point_3D[0]->pos[2] };
 		pointf3 p1 = { point_3D[1]->pos[0],point_3D[1]->pos[1],point_3D[1]->pos[2] };
 		pointf3 p2 = { point_3D[2]->pos[0],point_3D[2]->pos[1],point_3D[2]->pos[2] };
@@ -107,9 +116,20 @@ void Par_freebound::SetxList()
 
 		point_2D[0] = { 0,0 };
 		point_2D[1] = { distance(p0,p1),0 };
-		point_2D[2] = { distance(p0,p1) * t_angle[0],distance(p0,p1) * sin_(t_angle[0]) };
+		point_2D[2] = { distance(p0,p2) * t_angle[0],distance(p0,p2) * sin_(t_angle[0]) };
 		x_list.push_back(point_2D);
+		point_2D.clear();
+		t_angle.clear();
 	}
+
+	//pointf3 t0 = { 0,0,0 };
+	//pointf3 t1 = { 1,0,0 };
+	//pointf3 t2 = { 0,1,0 };
+	//cout << "test:" << get_angle(t0, t1, t2)*180/3.1415926 << endl;
+	/*for (int i = 0; i < x_angle.size(); i++)
+	{
+		cout << x_angle[i][0]*180/3.14 + x_angle[i][1]*180/3.14 + x_angle[i][2]*180/3.14 << endl;
+	}*/
 }
 
 /*void Par_freebound::SetMatList()
@@ -146,31 +166,38 @@ void Par_freebound::SetxList()
 
 void Par_freebound::SetCoeffMatrix()
 {
+	cout << "Set Corfficient Matrix!" << endl;
+	//cout << heMesh->NumVertices() << endl;
 	SparseMatrix<float> co_mat(heMesh->NumVertices(), heMesh->NumVertices());
-	//co_mat.resize(heMesh->NumVertices(), heMesh->NumVertices());
-	//co_mat.setZero(heMesh->NumVertices(), heMesh->NumVertices());
+	//cout << "co_mat size:" << co_mat.size() << endl;
+	co_mat.setZero();
+	//cout << "num of poly:" << heMesh->NumPolygons() << endl;
 
 	for (auto v : heMesh->Vertices())
 	{
-		auto idx_v = Index(v);
+		auto idx_v = heMesh->Index(v);
+		//cout << "idx_v:" << idx_v << endl;
 		auto adj_list = v->AdjVertices(); //get the adjvertexs
-		double co_v = 0;
+		float co_v = 0;
 
 		for (auto adj_v : adj_list)
 		{
-			double co_adj = 0;
-			auto idx_adjv = Index(adj_v);
+			float co_adj = 0;
+			auto idx_adjv = heMesh->Index(adj_v);
 			auto HE = v->HalfEdgeTo(adj_v);
 			auto Poly = HE->Polygon();
 			if (Poly != NULL)
 			{
-				auto idx_poly = Index(Poly);
+				auto idx_poly = heMesh->Index(Poly);
+				//cout << "idx_poly::" << idx_poly << endl;
 				auto t = Poly->BoundaryVertice();
+				//cout << "t size" << t.size() << endl;
 				int i;
 				for (i = 0; i < 3; i++) //find the index of vertex in the triangle
 				{
 					if (t[i] != v && t[i] != adj_v) break;
 				}
+				//cout << "i:" << i << endl;
 				//co_mat(idx_v, idx_v) += cot_(x_angle[idx_poly][i]);
 				//co_v += cot_(x_angle[idx_poly][i]);
 				co_adj += cot_(x_angle[idx_poly][i]);
@@ -180,7 +207,7 @@ void Par_freebound::SetCoeffMatrix()
 			Poly = HE->Polygon();
 			if (Poly != NULL)
 			{
-				auto idx_poly = Index(Poly);
+				auto idx_poly = heMesh->Index(Poly);
 				auto t = Poly->BoundaryVertice();
 				int i;
 				for (i = 0; i < 3; i++)
@@ -190,14 +217,14 @@ void Par_freebound::SetCoeffMatrix()
 				//co_mat(idx_v, idx_v) += cot_(x_angle[idx_poly][i]);
 				//co_v += cot_(x_angle[idx_poly][i]);
 				co_adj += cot_(x_angle[idx_poly][i]);
-				co_v += co_adj;
+				//co_v += co_adj;
 			}
-
-			co_mat.coeffRef(idx_v, idx_adjv) = -1 * co_adj;
+			co_v += co_adj;
+			co_mat.coeffRef(idx_v, idx_adjv) = (-1.0) * co_adj;
 		}
 		co_mat.coeffRef(idx_v, idx_v) = co_v;
 	}
-
+	//cout << co_mat << endl;
 	chol.compute(co_mat);
 }
 
@@ -205,7 +232,6 @@ void Par_freebound::InitTexcoords()
 {
 	auto bound = heMesh->Boundaries();
 	vector<int> bound_idx;
-
 	//get the index of the boundaries
 	for (auto& group : bound)
 	{
@@ -234,7 +260,10 @@ void Par_freebound::InitTexcoords()
 		for (auto& p_v : group)
 		{
 			p_v->Pair()->End()->pos[2] = 0;
-			if (i < len)
+			p_v->Pair()->End()->pos[0] = cos(2 * 3.1415926 * i / bound_size);
+			p_v->Pair()->End()->pos[1] = sin(2 * 3.1415926 * i / bound_size);
+
+			/*if (i < len)
 			{
 				p_v->Pair()->End()->pos[0] = 0.0 + i * (1.0 / len);
 				p_v->Pair()->End()->pos[1] = 0.0;
@@ -253,7 +282,7 @@ void Par_freebound::InitTexcoords()
 			{
 				p_v->Pair()->End()->pos[0] = 0.0;
 				p_v->Pair()->End()->pos[1] = 1.0 - (i - 3 * len) * (1.0 / len);
-			}
+			}*/
 
 			i++;
 		}
@@ -315,6 +344,9 @@ void Par_freebound::InitTexcoords()
 			}
 		}
 	}
+	//cout << mat << endl;
+
+	//cout << right_ << endl;
 
 	SparseLU<SparseMatrix<double>> solver;
 	solver.compute(mat);
@@ -325,6 +357,7 @@ void Par_freebound::InitTexcoords()
 	}
 
 	auto result = solver.solve(right);
+
 
 	for (auto& vert : v)
 	{
@@ -340,10 +373,19 @@ void Par_freebound::InitTexcoords()
 	}
 
 	//update texcoords
+	//vector<pointf2> texcoords;
 	for (auto vert : v)
 	{
 		texcoords.push_back({ vert->pos[0],vert->pos[1] });
 	}
+	//triMesh->Update(texcoords);
+
+	/*vector<pointf3> positions;
+	for (int i = 0; i < texcoords.size(); i++)
+	{
+		positions.push_back({ texcoords[i][0],texcoords[i][1],0 });
+	}
+	triMesh->Update(positions);*/
 }
 
 MatrixXf Par_freebound::GetRightMatrix()
@@ -358,19 +400,19 @@ MatrixXf Par_freebound::GetRightMatrix()
 		Vector2f temp_vct;
 		temp_vct.setZero();
 
-		auto idx_v = Index(v);
+		auto idx_v = heMesh->Index(v);
 		auto adj_list = v->AdjVertices(); //get the adjvertexs
-		float co_v = 0;
+		//float co_v = 0;
 
 		for (auto adj_v : adj_list)
 		{
-			float co_adj = 0;
-			auto idx_adjv = Index(adj_v);
+			//float co_adj = 0;
+			auto idx_adjv = heMesh->Index(adj_v);
 			auto HE = v->HalfEdgeTo(adj_v);
 			auto Poly = HE->Polygon();
 			if (Poly != NULL)
 			{
-				auto idx_poly = Index(Poly);
+				auto idx_poly = heMesh->Index(Poly);
 				auto t = Poly->BoundaryVertice();
 				int idx_i;
 				int idx_j;
@@ -378,10 +420,10 @@ MatrixXf Par_freebound::GetRightMatrix()
 				for (int i = 0; i < 3; i++) //find the index of vertex in the triangle
 				{
 					if (t[i] != v && t[i] != adj_v) idx_theta = i;
-					if (t[i] == v) idx_i = i;
+					if (t[i] == v)     idx_i = i;
 					if (t[i] == adj_v) idx_j = i;
 				}
-
+				//cout << "idx_i,idx_j,idx_theta" << idx_i <<" ,"<<idx_j<<", "<<idx_theta<< endl;
 				temp_vct += cot_(x_angle[idx_poly][idx_theta]) * mat_list[idx_poly] * (x_list[idx_poly][idx_i] - x_list[idx_poly][idx_j]);
 			}
 
@@ -389,7 +431,7 @@ MatrixXf Par_freebound::GetRightMatrix()
 			Poly = HE->Polygon();
 			if (Poly != NULL)
 			{
-				auto idx_poly = Index(Poly);
+				auto idx_poly = heMesh->Index(Poly);
 				auto t = Poly->BoundaryVertice();
 				int idx_i;
 				int idx_j;
@@ -446,7 +488,7 @@ float Par_freebound::get_angle(pointf3 p1, pointf3 p2, pointf3 p3)
 		std::cout << "zero distance!" << endl;
 		return -2;
 	}
-	return (pow(d1, 2) + pow(d3, 2) - pow(d2, 2)) / 2 * d1 * d3;
+	return (pow(d1, 2) + pow(d3, 2) - pow(d2, 2)) / (2 * d1 * d3);
 }
 
 float Par_freebound::cot_(float cos_)
@@ -466,26 +508,48 @@ float Par_freebound::sin_(float cos_)
 
 void Par_freebound::SetMatList()
 {
+	cout << "mat_list size:" << mat_list.size() << endl;
+	if (mat_list.size()!=0)
+	{
+		mat_list.clear();
+	}
+	cout << "mat_list size clear!:" << mat_list.size() << endl;
+	cout << "set mat list!" << endl;
+	/*cout << "texcoords!" << endl;
+	for (auto u : texcoords)
+	{
+		cout << u[0] << " , " << u[1] << endl;
+	}*/
+
 	for (auto t : heMesh->Polygons())
 	{
 		vector<V*> point_3D = t->BoundaryVertice();
 		Matrix2f mat;
-		Vector2f u0(texcoords[Index(point_3D[0])][0], texcoords[Index(point_3D[0])][1]);
-		Vector2f u1(texcoords[Index(point_3D[1])][0], texcoords[Index(point_3D[1])][1]);
-		Vector2f u2(texcoords[Index(point_3D[2])][0], texcoords[Index(point_3D[2])][1]);
-		vector<Vector2f> u_point = { u0,u1,u2 };  //correct?
-		size_t idx = Index(t);   //or set i=0... 
+		mat.setZero();
+		Vector2f u0(texcoords[heMesh->Index(point_3D[0])][0], texcoords[heMesh->Index(point_3D[0])][1]);
+		Vector2f u1(texcoords[heMesh->Index(point_3D[1])][0], texcoords[heMesh->Index(point_3D[1])][1]);
+		Vector2f u2(texcoords[heMesh->Index(point_3D[2])][0], texcoords[heMesh->Index(point_3D[2])][1]);
+
+		//cout << u0(0, 0) << "," << u0(1, 0) << endl;
+
+		vector<Vector2f> u_point;
+		u_point.push_back(u0);
+		u_point.push_back(u1);
+		u_point.push_back(u2);
+		size_t idx = heMesh->Index(t);   
 
 		//set mat for face/polygon t
 		for (int i = 0; i < 3; i++)
 		{
 			int j = (i + 1) % 3;
-			mat += (x_angle[idx][i]) * ((u_point[i] - u_point[j]) * ((x_list[idx][i] - x_list[idx][j]).transpose()));
+			mat += (cot_(x_angle[idx][i])) * ((u_point[i] - u_point[j]) * ((x_list[idx][i] - x_list[idx][j]).transpose()));
 		}
-
+		//cout << mat(0, 0) << "," << mat(0, 1) << "," << mat(1, 0) << "," << mat(1, 1) << endl;
+		u_point.clear();
+		//cout << "u_size" << u_point.size() << endl;
 		//find the best approximate, using SVD
 		JacobiSVD<Matrix2f> svd(mat, ComputeFullU | ComputeFullV);
-		Eigen::Matrix2f l, u, v;
+		Matrix2f l, u, v;
 		u = svd.matrixU();
 		v = svd.matrixV();
 		l = u * (v.transpose());
@@ -496,19 +560,34 @@ void Par_freebound::SetMatList()
 
 void Par_freebound::Para()
 {
+	cout << "Para!" << endl;
 	SetxList();
 	SetCoeffMatrix();
 	InitTexcoords();
-	SetMatList();
-	MatrixXd right = GetRightMatrix();
-
-	auto tex = chol.solve(right);
+	for (int i = 1; i <= 30; i++)
+	{
+		SetMatList();
+		MatrixXf right = GetRightMatrix();
+		auto tex = chol.solve(right);
+		//update texcoords
+		for (auto v : heMesh->Vertices())
+		{
+			int idx = heMesh->Index(v);
+			texcoords[idx][0] = tex(idx, 0);
+			texcoords[idx][1] = tex(idx, 1);
+			//cout << texcoords[idx][0] << "," << texcoords[idx][1] << endl;
+		}
+	}
 	for (auto v : heMesh->Vertices())
 	{
-		int idx = Index(v);
-		texcoords[idx][0] = tex(idx, 0);
-		texcoords[idx][1] = tex(idx, 1);
+		int idx = heMesh->Index(v);
+		cout << texcoords[idx][0] << "," << texcoords[idx][1] << endl;
 	}
-
-	triMesh->Update(texcoords);
+	vector<pointf3> indice;
+	for (auto u : texcoords)
+	{
+		indice.push_back({ u[0],u[1],0 });
+	}
+	triMesh->Update(indice);
+	//triMesh->Update(texcoords);
 }
