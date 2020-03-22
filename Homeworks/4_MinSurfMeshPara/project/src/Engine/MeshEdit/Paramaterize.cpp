@@ -5,7 +5,7 @@
 #include <Engine/Primitive/TriMesh.h>
 
 #include <math.h>
-
+ 
 #include <Eigen/Sparse>
 #include <MeshEdit\MinSurf.cpp>
 
@@ -26,9 +26,7 @@ void Paramaterize::Paramize() {
 	//(*triMesh_backup) = (*triMesh);
 	//const Ptr<HEMesh<V>> heMesh_backup;
 	//(*heMesh_backup) = (*heMesh);
-	cout << "paramize!" << endl;
 	auto bound = heMesh->Boundaries();
-	cout << "Number of boundaries:" << bound.size() << endl;
 	vector<int> bound_idx;
 	//get the index of the boundaries
 	for (auto& group : bound)

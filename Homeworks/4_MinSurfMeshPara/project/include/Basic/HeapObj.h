@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Basic/Ptr.h>
-
+ 
 namespace Ubpa {
 	class HeapObj : public std::enable_shared_from_this<HeapObj> {
 		// 将 new 和 Delete 的权限交给了 New 函数

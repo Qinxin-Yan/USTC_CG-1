@@ -8,7 +8,7 @@ using namespace Ubpa;
 
 using namespace std;
 using namespace Eigen;
-
+ 
 MinSurf::MinSurf(Ptr<TriMesh> triMesh)
 	: heMesh(make_shared<HEMesh<V>>())
 {

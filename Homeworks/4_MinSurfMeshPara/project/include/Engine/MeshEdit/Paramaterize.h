@@ -7,7 +7,7 @@
 namespace Ubpa {
 	class TriMesh;
 	class MinSurf;
-
+	 
 	//   mesh boundary == 1
 	class Paramaterize : public HeapObj {
 	public:
@@ -38,6 +38,7 @@ namespace Ubpa {
 		};
 		class E : public TEdge<V, E, P> { };
 		class P :public TPolygon<V, E, P> { };
+		friend class Par_freebound;
 
 	private:
 

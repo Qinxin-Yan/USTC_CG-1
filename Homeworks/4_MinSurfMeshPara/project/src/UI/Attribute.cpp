@@ -5,9 +5,12 @@
 #include <Engine/MeshEdit/Glue.h>
 #include <Engine/MeshEdit/MinSurf.h>
 #include <Engine/MeshEdit/Paramaterize.h>
+#include <Engine/MeshEdit/par_freebound.h>
+//#include <Engine/MeshEdit/Par_ARAP.h>
+
 #include <Engine/MeshEdit/IsotropicRemeshing.h>
 #include <Engine/MeshEdit/ShortestPath.h>
-#include <Engine/MeshEdit/MST.h>
+//#include <Engine/MeshEdit/MST.h>
 
 #include <Engine/Scene/SObj.h>
 #include <Engine/Scene/AllComponents.h>
@@ -355,6 +358,12 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 		pOGLW->DirtyVAO(mesh);
 	});
 
+	grid->AddButton("Par_ARAP", [mesh, pOGLW = attr->pOGLW](){
+		auto Par_ARAP = Par_freebound::New(mesh);
+		Par_ARAP->Run();
+		pOGLW->DirtyVAO(mesh);
+	});
+
 	grid->AddButton("Isotropic Remeshing", [mesh, pOGLW = attr->pOGLW]() {
 		printf("[Isotropic Remeshing] start\n");
 		auto isotropicRemeshing = IsotropicRemeshing::New(mesh);
@@ -371,10 +380,10 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 		sp->Run();
 		});
 
-	grid->AddButton("MST", [this]() {
+	/*grid->AddButton("MST", [this]() {
 		auto mst = MST::New(sobj);
 		mst->Run();
-		});
+		});*/
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<Capsule> capsule) {
