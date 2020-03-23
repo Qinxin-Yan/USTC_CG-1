@@ -6,7 +6,7 @@
 #include <Eigen/SVD>
 
 namespace Ubpa {
-	class TriMesh;
+	class TriMesh; 
 	class MinSurf;
 
 	//   mesh boundary == 1
@@ -22,6 +22,7 @@ namespace Ubpa {
 		bool Init(Ptr<TriMesh> triMesh);
 
 		bool Run();
+		bool Return();
 
 	private:
 		// kernel part of the algorithm
@@ -47,7 +48,7 @@ namespace Ubpa {
 		std::vector<std::vector<float>> x_angle;
 		std::vector<Eigen::Matrix2f>   mat_list;  //the list of matrix in each turn
 		std::vector<pointf2> texcoords;   //save the texcoords in order
-
+		std::vector<pointf3> positions_backup;
 
 	private:
 		class V;

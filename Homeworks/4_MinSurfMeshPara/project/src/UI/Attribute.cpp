@@ -364,6 +364,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 		pOGLW->DirtyVAO(mesh);
 	});
 
+
 	grid->AddButton("Isotropic Remeshing", [mesh, pOGLW = attr->pOGLW]() {
 		printf("[Isotropic Remeshing] start\n");
 		auto isotropicRemeshing = IsotropicRemeshing::New(mesh);

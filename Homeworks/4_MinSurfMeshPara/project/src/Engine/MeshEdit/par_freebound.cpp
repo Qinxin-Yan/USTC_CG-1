@@ -65,7 +65,12 @@ bool Par_freebound::Run() {
 			"\t""heMesh->IsEmpty() || !triMesh\n");
 		return false;
 	}
-
+	cout << heMesh->Vertices().size() << endl;
+	for (auto v : heMesh->Vertices())
+	{
+		positions_backup.push_back({ v->pos[0],v->pos[1],v->pos[2] });
+	}
+	cout << "positions.size" << positions_backup.size() << endl;
 	Para();
 
 	// half-edge structure -> triangle mesh
@@ -84,6 +89,19 @@ bool Par_freebound::Run() {
 
 	//triMesh->Init(indice, positions);
 
+	return true;
+}
+
+bool Par_freebound::Return()
+{
+	cout << "Return!" << endl;
+	cout << "positions size:" << positions_backup.size() << endl;
+	if (positions_backup.size() == 0) return false;
+	/*for (int i = 0; i < positions_backup.size(); i++)
+	{
+		cout << positions_backup[i][0] << "," << positions_backup[i][1] << "," << positions_backup[i][2] << endl;
+	}*/
+	triMesh->Update(positions_backup);
 	return true;
 }
 
@@ -564,7 +582,7 @@ void Par_freebound::Para()
 	SetxList();
 	SetCoeffMatrix();
 	InitTexcoords();
-	for (int i = 1; i <= 30; i++)
+	for (int i = 1; i <= 4; i++)
 	{
 		SetMatList();
 		MatrixXf right = GetRightMatrix();
@@ -583,11 +601,11 @@ void Par_freebound::Para()
 		int idx = heMesh->Index(v);
 		cout << texcoords[idx][0] << "," << texcoords[idx][1] << endl;
 	}
-	vector<pointf3> indice;
-	for (auto u : texcoords)
+	//vector<pointf3> indice;
+	/*for (auto u : texcoords)
 	{
 		indice.push_back({ u[0],u[1],0 });
-	}
-	triMesh->Update(indice);
-	//triMesh->Update(texcoords);
+	}*/
+	//triMesh->Update(indice);
+	triMesh->Update(texcoords);
 }
