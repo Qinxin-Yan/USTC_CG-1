@@ -12,7 +12,7 @@
 #include <Engine/Viewer/RTX_Renderer.h>
 #include <Engine/Viewer/PathTracer.h>
 #include <Engine/Viewer/Viewer.h>
-#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Scene.h> 
 #include <Engine/Scene/SObj.h>
 #include <Engine/Scene/CmptGeometry.h>
 #include <Engine/Scene/CmptSimu/CmptSimulate.h>

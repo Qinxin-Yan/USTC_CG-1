@@ -578,22 +578,24 @@ void Par_freebound::SetMatList()
 
 void Par_freebound::Para()
 {
+	int N = 4;
 	cout << "Para!" << endl;
 	SetxList();
 	SetCoeffMatrix();
 	InitTexcoords();
-	for (int i = 1; i <= 4; i++)
+	//iteration
+	for (int i = 1; i <= N; i++) 
 	{
 		SetMatList();
 		MatrixXf right = GetRightMatrix();
 		auto tex = chol.solve(right);
+
 		//update texcoords
 		for (auto v : heMesh->Vertices())
 		{
 			int idx = heMesh->Index(v);
 			texcoords[idx][0] = tex(idx, 0);
 			texcoords[idx][1] = tex(idx, 1);
-			//cout << texcoords[idx][0] << "," << texcoords[idx][1] << endl;
 		}
 	}
 	for (auto v : heMesh->Vertices())
@@ -601,11 +603,5 @@ void Par_freebound::Para()
 		int idx = heMesh->Index(v);
 		cout << texcoords[idx][0] << "," << texcoords[idx][1] << endl;
 	}
-	//vector<pointf3> indice;
-	/*for (auto u : texcoords)
-	{
-		indice.push_back({ u[0],u[1],0 });
-	}*/
-	//triMesh->Update(indice);
 	triMesh->Update(texcoords);
 }

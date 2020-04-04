@@ -5,7 +5,7 @@
 namespace Ubpa {
 	class MassSpring final: public Primitive {
 	public:
-
+		 
 		enum Mesh_TYPE
 		{
 			Tri,
