@@ -16,7 +16,7 @@ namespace Ubpa {
 				std::cout << edgelist[i] << std::endl;
 			}
 			gravity = 9.8;
-			stiff = 130000;
+			stiff = 10000;
 			//spring_len = 1.0;
 			this->positions.resize(plist.size());
 			this->mass_list.resize(plist.size());
@@ -28,6 +28,7 @@ namespace Ubpa {
 					this->positions[i][j] = plist[i][j];
 				}
 			}
+			//SetLeftFix();
 			SetTopFix();
 			/*for (int i = 0; i < fixed_id.size(); i++)
 			{

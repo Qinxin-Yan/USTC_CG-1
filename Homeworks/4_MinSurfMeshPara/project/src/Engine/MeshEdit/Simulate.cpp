@@ -105,6 +105,8 @@ void Simulate::SetTopFix()
 	}
 	fixed_id.push_back(tmp[0]);
 	fixed_id.push_back(tmp[tmp.size() - 1]);
+
+	//Init();
 }
 
 void Simulate::SimulateOnce() {
@@ -180,7 +182,7 @@ VectorXf Simulate::GetExtForce()  //gravity only
 	f.setZero();
 	for (int i = 0; i < f.size(); i++)
 	{
-		if (i % 3 == 2) f.coeffRef(i, 0) = -gravity;    
+		if (i % 3 == 1) f.coeffRef(i, 0) = gravity;    
 		//if (i % 3 == 0) f.coeffRef(i, 0) = gravity;
 	}
 	return f;
