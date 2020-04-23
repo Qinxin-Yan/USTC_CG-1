@@ -25,6 +25,8 @@ void main()
     vs_out.WorldPos = worldPos.xyz / worldPos.w;
 	
     vs_out.TexCoord = aTexCoord;
+    vec4 displace_color=texture(displacementmap,aTexCoord);
+    vec3 displace=vec3(0,0,displace_color.x);
 	
 	mat3 normalMatrix = transpose(inverse(mat3(model)));
 	
@@ -34,5 +36,7 @@ void main()
 	vec3 B = vec3(0);
 	vs_out.TBN = mat3(T, B, N);
 
-    gl_Position = projection * view * worldPos;
+ 
+    gl_Position = projection * view * (worldPos+vec4((vs_out.TBN*displace)*displacement_coefficient,1.0));
+
 }
