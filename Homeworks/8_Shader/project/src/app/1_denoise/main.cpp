@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -276,17 +277,142 @@ gl::Texture2D loadTexture(char const* path)
 }
 
 gl::Texture2D genDisplacementmap(const SimpleLoader::OGLResources* resources) {
-    const float* displacementData = new float[1024 * 1024];
+    float* displacementData = new float[1024 * 1024];
     // TODO: HW8 - 1_denoise | genDisplacementmap
     // 1. set displacementData with resources's positions, indices, normals, ...
-    // 2. change global variable: displacement_bias, displacement_scale, displacement_lambda
 
-    // ...
+    size_t vertexNum = resources->positions.size();
+    size_t indiceNum = resources->indices.size();
+    std::vector<pointf3> add_vertex(vertexNum);
+    std::vector<int> neighbour_num(vertexNum);
+    std::vector<float> delta(vertexNum);
+    auto isNeighbour = new bool[vertexNum * vertexNum];  //to tag the neighbour
+    for (auto i = 0; i < vertexNum; i++)   //Initiate
+    {
+        add_vertex[i] = pointf3(0.0, 0.0, 0.0);
+        neighbour_num[i] = 0;
+        for (size_t j = 0; j < vertexNum; j++) 
+        {
+            isNeighbour[j * (vertexNum - 1) + i] = false;
+        }
+    }
+
+    for (size_t i = 0; i < indiceNum; i += 3) {
+        auto i1 = resources->indices[i];
+        auto i2 = resources->indices[i + 1];
+        auto i3 = resources->indices[i + 2];
+
+        //v1,v2,v3 is a triangle
+        pointf3 v1 = resources->positions[i1];
+        pointf3 v2 = resources->positions[i2];
+        pointf3 v3 = resources->positions.at(i3);
+
+        if (!isNeighbour[i1 * (vertexNum - 1) + i2]) 
+        {
+            for (int j = 0; j < 3; j++) {
+                add_vertex[i1][j] += v2[j];
+                add_vertex[i2][j] += v1[j];
+            }
+            isNeighbour[i1 * (vertexNum - 1) + i2] = true;
+            isNeighbour[i2 * (vertexNum - 1) + i1] = true;
+            neighbour_num[i1] ++;
+            neighbour_num[i2] ++;
+        }
+        if (!isNeighbour[i2 * (vertexNum - 1) + i3]) 
+        {
+            for (int j = 0; j < 3; j++) {
+                add_vertex[i2][j] += v3[j];
+                add_vertex[i3][j] += v2[j];
+            }
+            isNeighbour[i2 * (vertexNum - 1) + i3] = true;
+            isNeighbour[i3 * (vertexNum - 1) + i2] = true;
+            neighbour_num[i2] ++;
+            neighbour_num[i3] ++;
+        }
+        if (!isNeighbour[i3 * (vertexNum - 1) + i1]) 
+        {
+            for (int j = 0; j < 3; j++) {
+                add_vertex[i3][j] += v1[j];
+                add_vertex[i1][j] += v3[j];
+            }
+            isNeighbour[i3 * (vertexNum - 1) + i1] = true;
+            isNeighbour[i1 * (vertexNum - 1) + i3] = true;
+            neighbour_num[i3] ++;
+            neighbour_num[i1] ++;
+        }
+    }
+
+    float max = -10000, min = 10000;
+    for (size_t i = 0; i < vertexNum; i++) {
+        vecf3 d;
+        for (size_t j = 0; j < 3; j++) {
+            d.at(j) = resources->positions[i].at(j) - add_vertex[i].at(j) / float(neighbour_num[i]);
+        }
+        delta[i] = d.dot(resources->normals.at(i).cast_to<vecf3>());
+        if (delta[i] < min) min = delta[i];
+        if (delta[i] > max) max = delta[i];
+    }
+
+    // 2. change global variable: displacement_bias, displacement_scale, displacement_lambda
+    displacement_bias = min;
+    displacement_scale = max - min;
+    displacement_lambda = 0.7f;
+
+    for (auto i = 0; i < vertexNum; i++)
+    {
+        auto u = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i).at(0), 0.f, 1.f) - 0.5);
+        auto v = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i).at(1), 0.f, 1.f) - 0.5);
+        displacementData[u + 1024 * v] = (delta[i] - displacement_bias) / displacement_scale;
+    }
+
+    for (size_t i = 0; i < indiceNum; i += 3) 
+    {
+        auto i1 = resources->indices[i];
+        auto i2 = resources->indices[i + 1];
+        auto i3 = resources->indices[i + 2];
+
+        //u,v : 0~1023
+        auto u1 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i1).at(0), 0.f, 1.f) - 0.5);
+        auto v1 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i1).at(1), 0.f, 1.f) - 0.5);
+        auto u2 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i2).at(0), 0.f, 1.f) - 0.5);
+        auto v2 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i2).at(1), 0.f, 1.f) - 0.5);
+        auto u3 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i3).at(0), 0.f, 1.f) - 0.5);
+        auto v3 = (size_t)std::round(1024 * std::clamp(resources->texcoords.at(i3).at(1), 0.f, 1.f) - 0.5);
+
+        //²åÖµ²Ù×÷
+        int u_min = u1, u_max = u1, v_min = v1, v_max = v1;
+        if (u_min > u2) u_min = u2;
+        if (u_min > u3) u_min = u3;
+        if (u_max < u2) u_max = u2;
+        if (u_max < u3) u_max = u3;
+
+        if (v_min > v2) v_min = v2;
+        if (v_min > v3) v_min = v3;
+        if (v_max < v2) v_max = v2;
+        if (v_max < v3) v_max = v3;
+
+        for (int u = u_min; u <= u_max; u++) {
+            for (int v = v_min; v <= v_max; v++) {
+                float d3 = (u - u1) * (v2 - v1) - (v - v1) * (u2 - u1);
+                float d1 = (u - u2) * (v3 - v2) - (v - v2) * (u3 - u2);
+                float d2 = (u - u3) * (v1 - v3) - (v - v3) * (u1 - u3);
+                if (d1 * d2 >= 0 && d2 * d3 >= 0) {
+                    float d0 = d1 + d2 + d3;
+                    displacementData[u + 1024 * v] = (delta[i1] * d1 / d0 + delta[i2] * d2 / d0 + delta[i3] * d3 / d0 - displacement_bias) / displacement_scale;
+                }
+            }
+        }
+    }
 
     gl::Texture2D displacementmap;
     displacementmap.SetImage(0, gl::PixelDataInternalFormat::Red, 1024, 1024, gl::PixelDataFormat::Red, gl::PixelDataType::Float, displacementData);
-    delete[] displacementData;
     displacementmap.SetWrapFilter(gl::WrapMode::Repeat, gl::WrapMode::Repeat,
         gl::MinFilter::Linear, gl::MagFilter::Linear);
+    stbi_uc* stbi_data = new stbi_uc[1024 * 1024];
+    for (size_t i = 0; i < 1024 * 1024; i++)
+        stbi_data[i] = static_cast<stbi_uc>(std::clamp(displacementData[i] * 255.f, 0.f, 255.f));
+    //stbi_write_png("../data/1_denoise_displacement_map.png", 1024, 1024, 1, stbi_data, 1024);
+    delete[] stbi_data;
+    delete[] displacementData;
     return displacementmap;
 }
